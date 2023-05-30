@@ -1,0 +1,167 @@
+name: equistore
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # run at 10:05 every day
+    - cron: '5 10 * * *'
+  pull_request:
+    # Check all PR
+
+jobs:
+  check-new-commits:
+    runs-on: ubuntu-latest
+    outputs:
+      n_commits: ${{ steps.check-commits.outputs.n_commits }}
+    steps:
+      - name: clone equistore
+        uses: actions/checkout@v3
+        with:
+          repository: lab-cosmo/equistore
+
+      - id: check-commits
+        name: check for recent commits
+        run: echo "n_commits=$(git log --oneline --since='24 hours ago' | wc -l)" >> "$GITHUB_OUTPUT"
+
+  build-wheels:
+    needs: check-new-commits
+    # build wheels for new commits on equistore or this repo
+    if: ${{ needs.check-new-commits.outputs.n_commits > 0 || github.event_name == 'pull_request' || github.event_name == 'push' }}
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+    strategy:
+      matrix:
+        include:
+          - name: x86_64 Linux
+            os: ubuntu-latest
+            rust-target: x86_64-unknown-linux-gnu
+            cibw_arch: x86_64
+            build-extra: true
+          - name: x86_64 macOS
+            os: macos-latest
+            rust-target: x86_64-apple-darwin
+            cibw_arch: x86_64
+          - name: M1 macOS
+            os: macos-latest
+            rust-target: aarch64-apple-darwin
+            cibw_arch: arm64
+          - name: x86_64 Windows
+            os: windows-latest
+            rust-target: x86_64-pc-windows-msvc
+            cibw_arch: AMD64
+
+    steps:
+      - name: clone equistore
+        uses: actions/checkout@v3
+        with:
+          repository: lab-cosmo/equistore
+          fetch-depth: 0
+
+      - name: checkout nightly-wheels
+        uses: actions/checkout@v3
+        with:
+          path: nightly-wheels
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: setup rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          target: ${{ matrix.rust-target }}
+
+      - name: install cibuildwheel
+        run: python -m pip install cibuildwheel build
+
+      - name: build manylinux with rust docker image
+        if: matrix.os == 'ubuntu-latest'
+        run: docker build -t rustc-manylinux2010_x86_64 nightly-wheels/rustc-manylinux2010_x86_64
+
+      - name: build equistore-core wheels
+        run: python -m cibuildwheel --output-dir wheelhouse python/equistore-core
+        env:
+          CIBW_BUILD: cp310-*
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_ARCHS: ${{ matrix.cibw_arch }}
+          CIBW_BUILD_VERBOSITY: 2
+          CIBW_MANYLINUX_X86_64_IMAGE: rustc-manylinux2010_x86_64
+
+      - name: build sdist and other wheels
+        if: ${{ matrix.build-extra }}
+        run: |
+          ./scripts/package-core.sh
+          python -m build --sdist python/equistore-core --outdir wheelhouse
+          python -m build python/equistore-operations --outdir wheelhouse
+          python -m build . --outdir wheelhouse
+
+      - name: upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: |
+            wheelhouse/*.whl
+            wheelhouse/*.tar.gz
+
+  update-gh-pages:
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+
+      - name: download wheels
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
+          path: wheels
+
+      - name: create separate directories
+        run: |
+          ls wheels
+          mkdir equistore-core
+          mv wheels/equistore_core* equistore-core
+          mv wheels/equistore-core* equistore-core
+
+          mkdir equistore-operations
+          mv wheels/equistore_operations* equistore-operations
+          mv wheels/equistore-operations* equistore-operations
+
+          mkdir equistore
+          mv wheels/equistore* equistore
+
+      - name: create index files
+        run: |
+          python create-index.py equistore-core > equistore-core/index.html
+          python create-index.py equistore-operations > equistore-operations/index.html
+          python create-index.py equistore > equistore/index.html
+
+      - name: deploy equistore-core to gh-pages
+        # only deploy from schedule/push to main branch
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./equistore-core
+          destination_dir: equistore-core
+
+      - name: deploy equistore-operations to gh-pages
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./equistore-operations
+          destination_dir: equistore-operations
+
+      - name: deploy equistore to gh-pages
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./equistore
+          destination_dir: equistore
