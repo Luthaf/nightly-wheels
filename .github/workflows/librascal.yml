@@ -85,10 +85,18 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: wheels
-          path: rascal
+          path: librascal
+
+      - name: rename wheels
+        run: |
+          cd librascal
+          for file in rascal*; do
+              mv $file lib$file
+          done
+          ls .
 
       - name: create index file
-        run: python create-index.py rascal | tee rascal/index.html
+        run: python create-index.py librascal | tee librascal/index.html
 
       - name: deploy to gh-pages
         # only deploy from schedule/push to main branch
@@ -96,5 +104,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./rascal
-          destination_dir: rascal
+          publish_dir: ./librascal
+          destination_dir: librascal
