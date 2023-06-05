@@ -8,7 +8,7 @@ day, and make the pre-built wheels directly installable with pip.
 
 ```bash
 # install rascal dependencies first
-pip install numpy>=1.16.0 scipy>=1.4.0 matplotlib>=2.0.0 ase>=3.19.0
+pip install numpy scipy ase
 
 # finally install librascal itself (this can not be a single step since there is
 # another package called rascal on PyPI)
