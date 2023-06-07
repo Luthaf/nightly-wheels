@@ -56,7 +56,8 @@ jobs:
       - name: clone equistore
         uses: actions/checkout@v3
         with:
-          repository: lab-cosmo/equistore
+          repository: luthaf/equistore
+          ref: fix-versions
           fetch-depth: 0
 
       - name: checkout nightly-wheels
