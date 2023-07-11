@@ -20,9 +20,9 @@ pip install --index-url https://luthaf.fr/nightly-wheels/ rascal
 
 ## equistore
 
-Data storage and manipulation for atomistic machine learning, https://github.com/lab-cosmo/equistore
-
 [![equistore](https://github.com/Luthaf/nightly-wheels/actions/workflows/equistore.yml/badge.svg?branch=main)](https://github.com/Luthaf/nightly-wheels/actions/workflows/equistore.yml)
+
+Data storage and manipulation for atomistic machine learning, https://github.com/lab-cosmo/equistore
 
 ```bash
 # install the full project
@@ -33,6 +33,16 @@ pip install --extra-index-url https://luthaf.fr/nightly-wheels/ equistore-core
 pip install --extra-index-url https://luthaf.fr/nightly-wheels/ equistore-operations
 ```
 
+## rascaline
+
+[![rascaline](https://github.com/Luthaf/nightly-wheels/actions/workflows/rascaline.yml/badge.svg?branch=main)](https://github.com/Luthaf/nightly-wheels/actions/workflows/rascaline.yml)
+
+Computing representations for atomistic machine learning, https://github.com/luthaf/rascaline
+
+```bash
+# install the full project
+pip install --extra-index-url https://luthaf.fr/nightly-wheels/ rascaline
+```
 
 # Adding a new project
 
