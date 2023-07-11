@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
   schedule:
-    # run at 10:05 every day
-    - cron: '5 10 * * *'
+    # run at 10:10 every day
+    - cron: '10 10 * * *'
   pull_request:
     # Check all PR
 
@@ -18,7 +18,7 @@ jobs:
       - name: clone rascaline
         uses: actions/checkout@v3
         with:
-          repository: lab-cosmo/rascaline
+          repository: luthaf/rascaline
 
       - id: check-commits
         name: check for recent commits
