@@ -74,12 +74,15 @@ jobs:
           toolchain: stable
           target: ${{ matrix.rust-target }}
 
-      - name: install cibuildwheel
-        run: python -m pip install cibuildwheel build
+      - name: install python dependecies
+        run: python -m pip install cibuildwheel build toml
 
       - name: build manylinux with rust docker image
         if: matrix.os == 'ubuntu-latest'
         run: docker build -t rustc-manylinux2010_x86_64 nightly-wheels/rustc-manylinux2010_x86_64
+
+      - name: patch pyproject.toml to pull dependencies from this repo
+        run: python nightly-wheels/patch-rascaline.py
 
       - name: build rascaline
         run: python -m cibuildwheel --output-dir wheelhouse .
