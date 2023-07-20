@@ -95,6 +95,10 @@ jobs:
         run: |
           ./scripts/package-core.sh
           python -m build --sdist python/equistore-core --outdir wheelhouse
+
+          ./scripts/package-torch.sh
+          python -m build --sdist python/equistore-torch --outdir wheelhouse
+
           python -m build python/equistore-operations --outdir wheelhouse
           python -m build . --outdir wheelhouse
 
