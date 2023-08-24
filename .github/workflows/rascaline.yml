@@ -79,7 +79,7 @@ jobs:
 
       - name: build manylinux with rust docker image
         if: matrix.os == 'ubuntu-latest'
-        run: docker build -t rustc-manylinux2010_x86_64 nightly-wheels/rustc-manylinux2010_x86_64
+        run: docker build -t rustc-manylinux2014_x86_64 nightly-wheels/rustc-manylinux2014_x86_64
 
       - name: patch pyproject.toml to pull dependencies from this repo
         run: python nightly-wheels/patch-rascaline.py
@@ -91,7 +91,7 @@ jobs:
           CIBW_SKIP: "*-musllinux*"
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
           CIBW_BUILD_VERBOSITY: 2
-          CIBW_MANYLINUX_X86_64_IMAGE: rustc-manylinux2010_x86_64
+          CIBW_MANYLINUX_X86_64_IMAGE: rustc-manylinux2014_x86_64
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel --ignore-missing-dependencies --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --exclude libequistore.so -w {dest_dir} {wheel}"
 

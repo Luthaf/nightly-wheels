@@ -79,7 +79,7 @@ jobs:
 
       - name: build manylinux with rust docker image
         if: matrix.os == 'ubuntu-latest'
-        run: docker build -t rustc-manylinux2010_x86_64 nightly-wheels/rustc-manylinux2010_x86_64
+        run: docker build -t rustc-manylinux2014_x86_64 nightly-wheels/rustc-manylinux2014_x86_64
 
       - name: build equistore-core wheels
         run: python -m cibuildwheel --output-dir wheelhouse python/equistore-core
@@ -88,7 +88,7 @@ jobs:
           CIBW_SKIP: "*-musllinux*"
           CIBW_ARCHS: ${{ matrix.cibw_arch }}
           CIBW_BUILD_VERBOSITY: 2
-          CIBW_MANYLINUX_X86_64_IMAGE: rustc-manylinux2010_x86_64
+          CIBW_MANYLINUX_X86_64_IMAGE: rustc-manylinux2014_x86_64
 
       - name: build sdist and other wheels
         if: ${{ matrix.build-extra }}
