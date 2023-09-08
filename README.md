@@ -18,19 +18,22 @@ pip install numpy scipy ase
 pip install --index-url https://luthaf.fr/nightly-wheels/ rascal
 ```
 
-## equistore
+## metatensor
 
-[![equistore](https://github.com/Luthaf/nightly-wheels/actions/workflows/equistore.yml/badge.svg?branch=main)](https://github.com/Luthaf/nightly-wheels/actions/workflows/equistore.yml)
+[![metatensor](https://github.com/Luthaf/nightly-wheels/actions/workflows/metatensor.yml/badge.svg?branch=main)](https://github.com/Luthaf/nightly-wheels/actions/workflows/metatensor.yml)
 
-Data storage and manipulation for atomistic machine learning, https://github.com/lab-cosmo/equistore
+Data storage and manipulation for atomistic machine learning, https://github.com/lab-cosmo/metatensor
 
 ```bash
 # install the full project
-pip install --extra-index-url https://luthaf.fr/nightly-wheels/ equistore
+pip install --extra-index-url https://luthaf.fr/nightly-wheels/ metatensor
+# install the full project, including the torch interface
+pip install --extra-index-url https://luthaf.fr/nightly-wheels/ metatensor[torch]
 
 # install sub-packages (not required if you installed the full project)
-pip install --extra-index-url https://luthaf.fr/nightly-wheels/ equistore-core
-pip install --extra-index-url https://luthaf.fr/nightly-wheels/ equistore-operations
+pip install --extra-index-url https://luthaf.fr/nightly-wheels/ metatensor-core
+pip install --extra-index-url https://luthaf.fr/nightly-wheels/ metatensor-torch
+pip install --extra-index-url https://luthaf.fr/nightly-wheels/ metatensor-operations
 ```
 
 ## rascaline
