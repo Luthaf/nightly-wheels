@@ -1,4 +1,4 @@
-name: equistore
+name: metatensor
 
 on:
   push:
@@ -15,10 +15,10 @@ jobs:
     outputs:
       n_commits: ${{ steps.check-commits.outputs.n_commits }}
     steps:
-      - name: clone equistore
+      - name: clone metatensor
         uses: actions/checkout@v3
         with:
-          repository: lab-cosmo/equistore
+          repository: lab-cosmo/metatensor
 
       - id: check-commits
         name: check for recent commits
@@ -26,7 +26,7 @@ jobs:
 
   build-wheels:
     needs: check-new-commits
-    # build wheels for new commits on equistore or this repo
+    # build wheels for new commits on metatensor or this repo
     if: ${{ needs.check-new-commits.outputs.n_commits > 0 || github.event_name == 'pull_request' || github.event_name == 'push' }}
 
     runs-on: ${{ matrix.os }}
@@ -53,10 +53,10 @@ jobs:
             cibw_arch: AMD64
 
     steps:
-      - name: clone equistore
+      - name: clone metatensor
         uses: actions/checkout@v3
         with:
-          repository: lab-cosmo/equistore
+          repository: lab-cosmo/metatensor
           fetch-depth: 0
 
       - name: checkout nightly-wheels
@@ -81,8 +81,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: docker build -t rustc-manylinux2014_x86_64 nightly-wheels/rustc-manylinux2014_x86_64
 
-      - name: build equistore-core wheels
-        run: python -m cibuildwheel --output-dir wheelhouse python/equistore-core
+      - name: build metatensor-core wheels
+        run: python -m cibuildwheel --output-dir wheelhouse python/metatensor-core
         env:
           CIBW_BUILD: cp310-*
           CIBW_SKIP: "*-musllinux*"
@@ -94,8 +94,8 @@ jobs:
         if: ${{ matrix.build-extra }}
         run: |
           ./scripts/package-core.sh
-          python -m build --sdist python/equistore-core --outdir wheelhouse
-          python -m build python/equistore-operations --outdir wheelhouse
+          python -m build --sdist python/metatensor-core --outdir wheelhouse
+          python -m build python/metatensor-operations --outdir wheelhouse
           python -m build . --outdir wheelhouse
 
       - name: upload wheels
@@ -124,44 +124,44 @@ jobs:
       - name: create separate directories
         run: |
           ls wheels
-          mkdir equistore-core
-          mv wheels/equistore_core* equistore-core
-          mv wheels/equistore-core* equistore-core
+          mkdir metatensor-core
+          mv wheels/metatensor_core* metatensor-core
+          mv wheels/metatensor-core* metatensor-core
 
-          mkdir equistore-operations
-          mv wheels/equistore_operations* equistore-operations
-          mv wheels/equistore-operations* equistore-operations
+          mkdir metatensor-operations
+          mv wheels/metatensor_operations* metatensor-operations
+          mv wheels/metatensor-operations* metatensor-operations
 
-          mkdir equistore
-          mv wheels/equistore* equistore
+          mkdir metatensor
+          mv wheels/metatensor* metatensor
 
       - name: create index files
         run: |
-          python create-index.py equistore-core > equistore-core/index.html
-          python create-index.py equistore-operations > equistore-operations/index.html
-          python create-index.py equistore > equistore/index.html
+          python create-index.py metatensor-core > metatensor-core/index.html
+          python create-index.py metatensor-operations > metatensor-operations/index.html
+          python create-index.py metatensor > metatensor/index.html
 
-      - name: deploy equistore-core to gh-pages
+      - name: deploy metatensor-core to gh-pages
         # only deploy from schedule/push to main branch
         if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./equistore-core
-          destination_dir: equistore-core
+          publish_dir: ./metatensor-core
+          destination_dir: metatensor-core
 
-      - name: deploy equistore-operations to gh-pages
+      - name: deploy metatensor-operations to gh-pages
         if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./equistore-operations
-          destination_dir: equistore-operations
+          publish_dir: ./metatensor-operations
+          destination_dir: metatensor-operations
 
-      - name: deploy equistore to gh-pages
+      - name: deploy metatensor to gh-pages
         if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./equistore
-          destination_dir: equistore
+          publish_dir: ./metatensor
+          destination_dir: metatensor
