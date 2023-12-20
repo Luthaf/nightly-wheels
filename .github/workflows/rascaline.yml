@@ -97,6 +97,12 @@ jobs:
         run: |
           python -m build --sdist . --outdir wheelhouse
 
+          ./scripts/package-torch.sh
+          python -m build --sdist python/rascaline-torch --outdir wheelhouse
+        env:
+          # Use the CPU only version of torch when building/running the code
+          PIP_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+
       - name: upload wheels
         uses: actions/upload-artifact@v3
         with:
@@ -122,13 +128,18 @@ jobs:
 
       - name: create separate directories
         run: |
-          ls wheels
           mkdir rascaline
           mv wheels/rascaline* rascaline
+
+          mkdir rascaline-torch
+          # uncomment below if we create wheels for rascaline-torch
+          # mv wheels/rascaline_torch* rascaline-torch
+          mv wheels/rascaline-torch* rascaline-torch
 
       - name: create index files
         run: |
           python create-index.py rascaline > rascaline/index.html
+          python create-index.py rascaline-torch > rascaline-torch/index.html
 
       - name: deploy rascaline to gh-pages
         # only deploy from schedule/push to main branch
@@ -138,3 +149,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./rascaline
           destination_dir: rascaline
+
+      - name: deploy rascaline-torch to gh-pages
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./rascaline-torch
+          destination_dir: rascaline-torch
