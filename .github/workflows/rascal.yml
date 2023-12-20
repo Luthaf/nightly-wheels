@@ -24,84 +24,84 @@ jobs:
         name: check for recent commits
         run: echo "n_commits=$(git log --oneline --since='24 hours ago' | wc -l)" >> "$GITHUB_OUTPUT"
 
-  build-wheels:
-    needs: check-new-commits
-    # build wheels for new commits on librascal or this repo
-    if: ${{ needs.check-new-commits.outputs.n_commits > 0 || github.event_name == 'pull_request' || github.event_name == 'push' }}
+#   build-wheels:
+#     needs: check-new-commits
+#     # build wheels for new commits on librascal or this repo
+#     if: ${{ needs.check-new-commits.outputs.n_commits > 0 || github.event_name == 'pull_request' || github.event_name == 'push' }}
 
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} / ${{ matrix.python }}
-    strategy:
-      matrix:
-        build-sdist: [false]
-        os: [ubuntu-latest, macos-latest]
-        python:
-          - cp37
-          - cp38
-          - cp39
-          - cp310
-          # This does not build, it requires a pybind11 update on librascal side
-          # - cp311
-        include:
-          - os: ubuntu-latest
-            build-sdist: true
+#     runs-on: ${{ matrix.os }}
+#     name: ${{ matrix.os }} / ${{ matrix.python }}
+#     strategy:
+#       matrix:
+#         build-sdist: [false]
+#         os: [ubuntu-latest, macos-latest]
+#         python:
+#           - cp37
+#           - cp38
+#           - cp39
+#           - cp310
+#           # This does not build, it requires a pybind11 update on librascal side
+#           # - cp311
+#         include:
+#           - os: ubuntu-latest
+#             build-sdist: true
 
-    steps:
-      - name: clone librascal
-        uses: actions/checkout@v3
-        with:
-          repository: lab-cosmo/librascal
+#     steps:
+#       - name: clone librascal
+#         uses: actions/checkout@v3
+#         with:
+#           repository: lab-cosmo/librascal
 
-      - uses: actions/setup-python@v3
+#       - uses: actions/setup-python@v3
 
-      - name: install cibuildwheel
-        run: python -m pip install cibuildwheel build
+#       - name: install cibuildwheel
+#         run: python -m pip install cibuildwheel build
 
-      - name: build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
-        if: ${{ ! matrix.build-sdist }}
-        env:
-          CIBW_BUILD: ${{ matrix.python }}-*
-          CIBW_SKIP: "*-musllinux*"
-          CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_BUILD_VERBOSITY: 2
+#       - name: build wheels
+#         run: python -m cibuildwheel --output-dir wheelhouse
+#         if: ${{ ! matrix.build-sdist }}
+#         env:
+#           CIBW_BUILD: ${{ matrix.python }}-*
+#           CIBW_SKIP: "*-musllinux*"
+#           CIBW_ARCHS_MACOS: x86_64 arm64
+#           CIBW_BUILD_VERBOSITY: 2
 
-      - name: build sdist
-        if: ${{ matrix.build-sdist }}
-        run: |
-          python -m build --sdist . --outdir wheelhouse
+#       - name: build sdist
+#         if: ${{ matrix.build-sdist }}
+#         run: |
+#           python -m build --sdist . --outdir wheelhouse
 
-      - name: upload wheels
-        uses: actions/upload-artifact@v3
-        with:
-          name: wheels
-          path: |
-            wheelhouse/*.whl
-            wheelhouse/*.tar.gz
+#       - name: upload wheels
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: wheels
+#           path: |
+#             wheelhouse/*.whl
+#             wheelhouse/*.tar.gz
 
-  update-gh-pages:
-    needs: build-wheels
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: checkout repository
-        uses: actions/checkout@v3
+#   update-gh-pages:
+#     needs: build-wheels
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write
+#     steps:
+#       - name: checkout repository
+#         uses: actions/checkout@v3
 
-      - name: download wheels
-        uses: actions/download-artifact@v3
-        with:
-          name: wheels
-          path: rascal
+#       - name: download wheels
+#         uses: actions/download-artifact@v3
+#         with:
+#           name: wheels
+#           path: rascal
 
-      - name: create index file
-        run: python create-index.py rascal | tee rascal/index.html
+#       - name: create index file
+#         run: python create-index.py rascal | tee rascal/index.html
 
-      - name: deploy to gh-pages
-        # only deploy from schedule/push to main branch
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./rascal
-          destination_dir: rascal
+#       - name: deploy to gh-pages
+#         # only deploy from schedule/push to main branch
+#         if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./rascal
+#           destination_dir: rascal
