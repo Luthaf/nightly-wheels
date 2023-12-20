@@ -81,9 +81,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: docker build -t rustc-manylinux2014_x86_64 nightly-wheels/rustc-manylinux2014_x86_64
 
-      - name: patch pyproject.toml to pull dependencies from this repo
-        run: python nightly-wheels/patch-rascaline.py
-
       - name: build rascaline
         run: python -m cibuildwheel --output-dir wheelhouse .
         env:
