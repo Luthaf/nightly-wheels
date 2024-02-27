@@ -24,7 +24,7 @@ jobs:
         name: check for recent commits
         run: echo "n_commits=$(git log --oneline --since='24 hours ago' | wc -l)" >> "$GITHUB_OUTPUT"
 
-  build-wheels:
+  build-core:
     needs: check-new-commits
     # build wheels for new commits on metatensor or this repo
     if: ${{ needs.check-new-commits.outputs.n_commits > 0 || github.event_name == 'pull_request' || github.event_name == 'push' }}
@@ -38,7 +38,6 @@ jobs:
             os: ubuntu-latest
             rust-target: x86_64-unknown-linux-gnu
             cibw_arch: x86_64
-            build-extra: true
           - name: x86_64 macOS
             os: macos-latest
             rust-target: x86_64-apple-darwin
@@ -75,7 +74,7 @@ jobs:
           target: ${{ matrix.rust-target }}
 
       - name: install cibuildwheel
-        run: python -m pip install cibuildwheel build
+        run: python -m pip install cibuildwheel
 
       - name: build manylinux with rust docker image
         if: matrix.os == 'ubuntu-latest'
@@ -90,8 +89,42 @@ jobs:
           CIBW_BUILD_VERBOSITY: 2
           CIBW_MANYLINUX_X86_64_IMAGE: rustc-manylinux2014_x86_64
 
+      - name: upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: |
+            wheelhouse/*.whl
+            wheelhouse/*.tar.gz
+
+  build-other:
+    needs: check-new-commits
+    # build wheels for new commits on metatensor or this repo
+    if: ${{ needs.check-new-commits.outputs.n_commits > 0 || github.event_name == 'pull_request' || github.event_name == 'push' }}
+
+    runs-on: ubuntu-latest
+    name: Other wheels
+
+    steps:
+      - name: clone metatensor
+        uses: actions/checkout@v3
+        with:
+          repository: lab-cosmo/metatensor
+          fetch-depth: 0
+
+      - name: checkout nightly-wheels
+        uses: actions/checkout@v3
+        with:
+          path: nightly-wheels
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: install dependencies
+        run: python -m pip install build
+
       - name: build sdist and other wheels
-        if: ${{ matrix.build-extra }}
         run: |
           ./scripts/package-core.sh
           python -m build --sdist python/metatensor-core --outdir wheelhouse
@@ -111,7 +144,7 @@ jobs:
             wheelhouse/*.tar.gz
 
   update-gh-pages:
-    needs: build-wheels
+    needs: ["build-core", "build-other"]
     runs-on: ubuntu-latest
     permissions:
       contents: write
