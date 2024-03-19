@@ -126,12 +126,8 @@ jobs:
 
       - name: build sdist and other wheels
         run: |
-          ./scripts/package-core.sh
           python -m build --sdist python/metatensor-core --outdir wheelhouse
-
-          ./scripts/package-torch.sh
           python -m build --sdist python/metatensor-torch --outdir wheelhouse
-
           python -m build python/metatensor-operations --outdir wheelhouse
           python -m build . --outdir wheelhouse
 
